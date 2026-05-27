@@ -1,0 +1,957 @@
+
+Oumnia Jalal <oumniajalal05@gmail.com>
+ven. 22 mai 14:55 (il y a 5 jours)
+À Léna
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VériInfo – Détecteur de Fake News</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+--bg: #f0f4ff;
+--card: #ffffff;
+--card2: #f8f9ff;
+--border: #e2e8f8;
+--text: #1a1f3c;
+--text-soft: #6b7280;
+--blue: #4f6ef7;
+--blue-light: #e8edff;
+--red: #ef4444;
+--red-light: #fff1f1;
+--orange: #f59e0b;
+--orange-light: #fffbeb;
+--green: #10b981;
+--green-light: #ecfdf5;
+--grad1: #667eea;
+--grad2: #f093fb;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+font-family: 'DM Sans', sans-serif;
+background: var(--bg);
+min-height: 100vh;
+color: var(--text);
+overflow-x: hidden;
+}
+body::before {
+content: '';
+position: fixed;
+inset: 0;
+background: linear-gradient(135deg, #667eea22 0%, #f093fb22 50%, #4facfe22 100%);
+z-index: 0;
+pointer-events: none;
+}
+nav {
+position: sticky;
+top: 0;
+z-index: 100;
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 16px 40px;
+background: rgba(255,255,255,0.85);
+backdrop-filter: blur(20px);
+border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+display: flex;
+align-items: center;
+gap: 10px;
+font-family: 'Sora', sans-serif;
+font-weight: 700;
+font-size: 1.2rem;
+color: var(--text);
+}
+.nav-logo .dot {
+width: 10px; height: 10px;
+border-radius: 50%;
+background: linear-gradient(135deg, var(--grad1), var(--grad2));
+}
+.nav-links { display: flex; gap: 30px; list-style: none; }
+.nav-links a {
+text-decoration: none;
+color: var(--text-soft);
+font-size: 0.9rem;
+font-weight: 500;
+transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--blue); }
+.hero {
+position: relative;
+z-index: 1;
+text-align: center;
+padding: 60px 20px 40px;
+}
+.hero-badge {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+background: var(--blue-light);
+color: var(--blue);
+font-size: 0.78rem;
+font-weight: 600;
+padding: 6px 14px;
+border-radius: 100px;
+margin-bottom: 20px;
+letter-spacing: 0.5px;
+}
+.hero h1 {
+font-family: 'Sora', sans-serif;
+font-size: clamp(2rem, 5vw, 3.2rem);
+font-weight: 700;
+line-height: 1.2;
+background: linear-gradient(135deg, #1a1f3c 0%, var(--grad1) 50%, var(--grad2) 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+margin-bottom: 16px;
+}
+.hero p {
+color: var(--text-soft);
+font-size: 1rem;
+max-width: 520px;
+margin: 0 auto;
+line-height: 1.6;
+}
+.main-card {
+position: relative;
+z-index: 1;
+max-width: 820px;
+margin: 0 auto 40px;
+padding: 0 20px;
+}
+.card {
+background: var(--card);
+border-radius: 24px;
+padding: 32px;
+box-shadow: 0 4px 40px rgba(79,110,247,0.08);
+border: 1px solid var(--border);
+}
+.input-label {
+font-size: 0.95rem;
+font-weight: 600;
+color: var(--text);
+margin-bottom: 12px;
+display: block;
+}
+.input-wrap { margin-bottom: 16px; }
+.input-wrap textarea {
+width: 100%;
+padding: 16px 20px;
+border: 2px solid var(--border);
+border-radius: 14px;
+font-family: 'DM Sans', sans-serif;
+font-size: 0.95rem;
+color: var(--text);
+background: var(--card2);
+transition: border-color 0.2s, box-shadow 0.2s;
+outline: none;
+resize: none;
+}
+.input-wrap textarea:focus {
+border-color: var(--blue);
+box-shadow: 0 0 0 4px rgba(79,110,247,0.1);
+background: white;
+}
+.btn-analyze {
+width: 100%;
+padding: 16px;
+background: linear-gradient(135deg, var(--grad1), var(--blue));
+color: white;
+border: none;
+border-radius: 14px;
+font-family: 'Sora', sans-serif;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+box-shadow: 0 4px 20px rgba(102,126,234,0.35);
+}
+.btn-analyze:hover:not(:disabled) {
+transform: translateY(-1px);
+box-shadow: 0 8px 30px rgba(102,126,234,0.45);
+}
+.btn-analyze:disabled { opacity: 0.65; cursor: not-allowed; }
+.loading {
+display: none;
+text-align: center;
+padding: 30px 0;
+}
+.loading.show { display: block; }
+.spinner {
+width: 48px; height: 48px;
+border: 3px solid var(--border);
+border-top-color: var(--blue);
+border-radius: 50%;
+animation: spin 0.8s linear infinite;
+margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-steps { display: flex; flex-direction: column; gap: 4px; }
+.loading-step {
+font-size: 0.82rem;
+color: var(--text-soft);
+transition: color 0.3s, font-weight 0.3s;
+}
+.loading-step.active { color: var(--blue); font-weight: 500; }
+.loading-step.done { color: var(--green); }
+.results {
+display: none;
+margin-top: 28px;
+animation: fadeUp 0.4s ease;
+}
+.results.show { display: block; }
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(16px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.results-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+}
+.result-card {
+border-radius: 16px;
+padding: 22px;
+border: 1.5px solid var(--border);
+transition: transform 0.2s;
+background: white;
+}
+.result-card:hover { transform: translateY(-2px); }
+.score-card { display: flex; align-items: center; gap: 20px; }
+.score-ring { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
+.score-ring svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: #f0f0f0; stroke-width: 8; }
+.ring-fill {
+fill: none;
+stroke-width: 8;
+stroke-linecap: round;
+transition: stroke-dashoffset 1.2s ease;
+}
+.score-center {
+position: absolute;
+inset: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+}
+.score-num {
+font-family: 'Sora', sans-serif;
+font-size: 1.3rem;
+font-weight: 700;
+line-height: 1;
+}
+.score-label-small { font-size: 0.6rem; color: var(--text-soft); }
+.score-info h3 {
+font-family: 'Sora', sans-serif;
+font-size: 1.2rem;
+font-weight: 700;
+margin-bottom: 6px;
+}
+.score-info p { font-size: 0.82rem; color: var(--text-soft); }
+.ia-card { background: var(--card2); }
+.card-title {
+display: flex;
+align-items: center;
+gap: 8px;
+font-weight: 600;
+font-size: 0.95rem;
+margin-bottom: 12px;
+}
+.card-icon {
+width: 28px; height: 28px;
+border-radius: 8px;
+display: flex; align-items: center; justify-content: center;
+font-size: 0.9rem;
+}
+.ia-text { font-size: 0.875rem; line-height: 1.7; color: #374151; }
+.ia-footer {
+margin-top: 12px;
+padding-top: 10px;
+border-top: 1px solid var(--border);
+font-size: 0.75rem;
+color: var(--text-soft);
+}
+.indicators-list { display: flex; flex-direction: column; gap: 8px; }
+.indicator-item {
+display: flex;
+align-items: flex-start;
+gap: 10px;
+font-size: 0.875rem;
+padding: 8px 12px;
+border-radius: 10px;
+background: var(--card2);
+border: 1px solid var(--border);
+line-height: 1.4;
+}
+.sources-list { display: flex; flex-direction: column; }
+.source-item {
+font-size: 0.85rem;
+padding: 9px 0;
+border-bottom: 1px solid var(--border);
+}
+.source-item:last-child { border-bottom: none; }
+.source-item a {
+color: var(--blue);
+text-decoration: none;
+transition: color 0.15s;
+}
+.source-item a:hover { text-decoration: underline; }
+.source-publisher { font-size: 0.75rem; color: var(--text-soft); margin-top: 2px; }
+.source-rating {
+display: inline-block;
+font-size: 0.7rem;
+padding: 1px 7px;
+border-radius: 20px;
+margin-left: 6px;
+font-weight: 600;
+}
+.no-sources { font-size: 0.83rem; color: var(--text-soft); font-style: italic; line-height: 1.6; }
+.wiki-card {
+grid-column: 1 / -1;
+background: #f0fdf4;
+border-color: #bbf7d0;
+padding: 16px 20px;
+}
+.wiki-extract {
+font-size: 0.83rem;
+color: #374151;
+line-height: 1.7;
+margin-top: 8px;
+}
+.wiki-extract mark {
+background: #bbf7d0;
+border-radius: 2px;
+padding: 0 2px;
+}
+.confidence-bar-wrap {
+margin-top: 8px;
+height: 5px;
+background: #e2e8f0;
+border-radius: 10px;
+overflow: hidden;
+}
+.confidence-bar {
+height: 100%;
+border-radius: 10px;
+transition: width 1s ease;
+}
+.risk-high { background: var(--red-light); border-color: #fecaca; }
+.risk-high .score-num, .risk-high h3 { color: var(--red); }
+.risk-high .ring-fill { stroke: var(--red); }
+.risk-medium { background: var(--orange-light); border-color: #fde68a; }
+.risk-medium .score-num, .risk-medium h3 { color: var(--orange); }
+.risk-medium .ring-fill { stroke: var(--orange); }
+.risk-low { background: var(--green-light); border-color: #a7f3d0; }
+.risk-low .score-num, .risk-low h3 { color: var(--green); }
+.risk-low .ring-fill { stroke: var(--green); }
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+.examples {
+position: relative; z-index: 1;
+max-width: 820px; margin: 0 auto 60px; padding: 0 20px;
+}
+.examples h3 {
+font-family: 'Sora', sans-serif;
+font-size: 0.85rem; font-weight: 600;
+color: var(--text-soft); text-transform: uppercase;
+letter-spacing: 1px; margin-bottom: 12px;
+}
+.examples-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.example-chip {
+padding: 8px 16px;
+background: white;
+border: 1.5px solid var(--border);
+border-radius: 100px;
+font-size: 0.82rem; color: var(--text-soft);
+cursor: pointer; transition: all 0.2s;
+}
+.example-chip:hover {
+border-color: var(--blue);
+color: var(--blue);
+background: var(--blue-light);
+}
+footer {
+position: relative; z-index: 1;
+text-align: center; padding: 24px;
+border-top: 1px solid var(--border);
+color: var(--text-soft); font-size: 0.8rem;
+background: rgba(255,255,255,0.6);
+}
+@media (max-width: 600px) {
+nav { padding: 14px 20px; }
+.results-grid { grid-template-columns: 1fr; }
+.score-card { flex-direction: column; text-align: center; }
+.wiki-card { grid-column: 1; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+<div class="nav-logo">
+<div class="dot"></div>
+VériInfo
+</div>
+<ul class="nav-links">
+<li><a href="#">Accueil</a></li>
+<li><a href="#">À propos</a></li>
+<li><a href="#">FAQ</a></li>
+</ul>
+</nav>
+
+<div class="hero">
+<div class="hero-badge">🤖 Wikipedia · Google Fact Check · Analyse sémantique</div>
+<h1>Détectez les fausses<br>informations en secondes</h1>
+<p>Notre système croise trois sources indépendantes pour évaluer la fiabilité d'une information avec une précision maximale.</p>
+</div>
+
+<div class="main-card">
+<div class="card">
+<label class="input-label">Collez un texte à analyser :</label>
+<div class="input-wrap">
+<textarea id="inputText" rows="4"
+placeholder="Ex : Emmanuel Macron a été président de la France..."></textarea>
+</div>
+<button class="btn-analyze" id="btnAnalyze" onclick="analyzeText()">Analyser</button>
+
+<div class="loading" id="loading">
+<div class="spinner"></div>
+<div class="loading-steps">
+<div class="loading-step" id="step1">🔍 Recherche Wikipedia en cours…</div>
+<div class="loading-step" id="step2">📋 Vérification Google Fact Check…</div>
+<div class="loading-step" id="step3">🧠 Analyse sémantique du texte…</div>
+<div class="loading-step" id="step4">📊 Calcul du score final…</div>
+</div>
+</div>
+
+<div class="results" id="results">
+<div class="divider"></div>
+<div class="results-grid">
+
+<div class="result-card score-card" id="scoreCard">
+<div class="score-ring">
+<svg width="90" height="90" viewBox="0 0 90 90">
+<circle class="ring-bg" cx="45" cy="45" r="37"/>
+<circle class="ring-fill" id="ringFill" cx="45" cy="45" r="37"
+stroke-dasharray="232.5" stroke-dashoffset="232.5"/>
+</svg>
+<div class="score-center">
+<span class="score-num" id="scoreNum">0</span>
+<span class="score-label-small">/ 100</span>
+</div>
+</div>
+<div class="score-info">
+<h3 id="riskLabel">–</h3>
+<p>Fiabilité : <strong id="riskScore">–</strong></p>
+</div>
+</div>
+
+<div class="result-card ia-card">
+<div class="card-title">
+<div class="card-icon" style="background:#e8edff">🤖</div>
+Analyse du système
+</div>
+<p class="ia-text" id="iaText">–</p>
+<div class="ia-footer" id="sourcesUsed">🔵 Analyse multi-sources en cours…</div>
+</div>
+
+<div class="result-card" id="wikiCard" style="display:none">
+<div class="card-title">
+<div class="card-icon" style="background:#f0fdf4">📖</div>
+Vérification Wikipedia
+</div>
+<div class="wiki-extract" id="wikiExtract"></div>
+<div class="confidence-bar-wrap" style="margin-top:10px">
+<div class="confidence-bar" id="wikiBar" style="width:0%"></div>
+</div>
+</div>
+
+<div class="result-card" id="factCheckCard">
+<div class="card-title">
+<div class="card-icon" style="background:#fef3c7">🔍</div>
+Sources fact-check
+</div>
+<div class="sources-list" id="sourcesList"></div>
+</div>
+
+<div class="result-card" style="grid-column: 1 / -1">
+<div class="card-title">
+<div class="card-icon" style="background:#fee2e2">⚡</div>
+Indicateurs détectés
+</div>
+<div class="indicators-list" id="indicatorsList"></div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+<div class="examples">
+<h3>Exemples à tester</h3>
+<div class="examples-list">
+<div class="example-chip" onclick="fillExample(this)">Emmanuel Macron a été président de la France</div>
+<div class="example-chip" onclick="fillExample(this)">Les vaccins causent l'autisme selon une étude récente</div>
+<div class="example-chip" onclick="fillExample(this)">La Tour Eiffel se trouve à Berlin</div>
+<div class="example-chip" onclick="fillExample(this)">La Terre est plate, les scientifiques le cachent</div>
+<div class="example-chip" onclick="fillExample(this)">Albert Einstein a reçu le prix Nobel de physique</div>
+<div class="example-chip" onclick="fillExample(this)">Le COVID-19 est transmis par la 5G</div>
+<div class="example-chip" onclick="fillExample(this)">Paris est la capitale de la France</div>
+</div>
+</div>
+
+<footer>
+VériInfo — Projet académique de lutte contre la désinformation · 2026
+</footer>
+
+<script>
+const GOOGLE_KEY = "AIzaSyBzMYPUqrC67qB_P9NgdmhOEU1zx1oPRk4";
+
+// ════════════════════════════════════════════════════════
+// THÉORIES CONNUES (base de référence locale)
+// ════════════════════════════════════════════════════════
+const theoriesToConnues = [
+{ mots:["vaccin","autisme"], score:8, q:"vaccine autism debunked",
+analyse:"Le lien vaccins-autisme a été définitivement réfuté par des centaines d'études. L'étude Wakefield a été rétractée et son auteur radié." },
+{ mots:["terre","plate"], score:5, q:"flat earth false",
+analyse:"La Terre est sphérique, prouvé depuis l'Antiquité par des milliers de preuves convergentes. Cette théorie est l'une des plus connues désinformations." },
+{ mots:["5g","covid"], score:6, q:"5G COVID conspiracy false",
+analyse:"Aucun lien entre 5G et COVID-19. Le virus SARS-CoV-2 se propage par voie respiratoire, pas par ondes radio." },
+{ mots:["réchauffement","mythe"], score:7, q:"climate change denial",
+analyse:"Le réchauffement climatique est un consensus scientifique mondial soutenu par 97% des climatologues." },
+{ mots:["puce","vaccin"], score:5, q:"vaccine microchip conspiracy false",
+analyse:"Aucun vaccin ne contient de micropuce. Cette théorie complotiste a été réfutée par toutes les organisations scientifiques." },
+{ mots:["5g","covid"], score:6, q:"5G COVID false",
+analyse:"Aucun lien scientifique entre la 5G et le COVID-19 n'a jamais été démontré." },
+];
+
+const motsDouteux = [
+"cachent","dissimulent","complot","conspirat","révélé","choquant","scandale","urgent",
+"partagez vite","manipulation","puce","microchip","illuminati","nouvel ordre mondial",
+"big pharma","gouvernement cache","médias mentent","preuve irréfutable",
+"ce qu'on vous cache","révélation exclusive","censuré","interdit","vérité cachée"
+];
+
+const motsScientifiques = [
+"selon l'oms","selon l'onu","selon les scientifiques","étude publiée","peer review",
+"université","données officielles","selon reuters","selon afp","rapport officiel",
+"ministère","haute autorité de santé","académie de médecine","journal officiel"
+];
+
+// ════════════════════════════════════════════════════════
+// ÉTAPE 1 : WIKIPEDIA API (sans clé, CORS friendly)
+// ════════════════════════════════════════════════════════
+async function checkWikipedia(text) {
+const result = { found: false, extract: '', score: 0, matchedTerms: [], url: '' };
+
+// Extrait les mots significatifs du texte (> 3 lettres, pas stopwords)
+const stopWords = new Set(['dans','avec','pour','que','qui','une','des','les','est','par',
+'sur','pas','plus','très','mais','été','aussi','cette','tout','comme','bien','même',
+'leur','leurs','ont','sont','être','fait','dit','elle','lui','ils','nous','vous']);
+const words = text.toLowerCase()
+.replace(/[^\wÀ-ÿ\s]/g, ' ')
+.split(/\s+/)
+.filter(w => w.length > 3 && !stopWords.has(w));
+
+if (words.length === 0) return result;
+
+// Cherche d'abord la phrase entière, puis les entités
+const queries = [
+text.substring(0, 100),
+words.slice(0, 4).join(' '),
+words.slice(0, 3).join(' ')
+];
+
+for (const q of queries) {
+if (!q.trim()) continue;
+try {
+// Recherche sur Wikipédia FR
+const searchUrl = `https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=1&format=json&origin=*`;
+const searchRes = await fetch(searchUrl);
+const searchData = await searchRes.json();
+const pages = searchData.query?.search || [];
+if (pages.length === 0) continue;
+
+const pageTitle = pages[0].title;
+
+// Récupère l'extrait de la page
+const extractUrl = `https://fr.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts&exintro=true&explaintext=true&exsentences=5&format=json&origin=*`;
+const extractRes = await fetch(extractUrl);
+const extractData = await extractRes.json();
+const page = Object.values(extractData.query.pages)[0];
+if (!page || !page.extract) continue;
+
+const extract = page.extract;
+const extractLower = extract.toLowerCase();
+
+// Compte combien de mots du texte original se retrouvent dans l'extrait Wikipedia
+const textWords = text.toLowerCase()
+.replace(/[^\wÀ-ÿ\s]/g, ' ')
+.split(/\s+/)
+.filter(w => w.length > 3 && !stopWords.has(w));
+
+const matched = textWords.filter(w => extractLower.includes(w));
+const matchRatio = textWords.length > 0 ? matched.length / textWords.length : 0;
+
+if (matchRatio > 0.2 || matched.length >= 2) {
+result.found = true;
+result.extract = extract.substring(0, 300) + (extract.length > 300 ? '…' : '');
+result.matchedTerms = matched;
+result.score = Math.round(40 + matchRatio * 55); // 40-95
+result.url = `https://fr.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`;
+result.pageTitle = pageTitle;
+
+// Vérif de contradiction : y a-t-il des affirmations dans le texte qui contredisent Wikipedia ?
+result.score = checkContradictions(text, extract, result.score);
+break;
+}
+} catch (e) {
+console.warn('Wikipedia error:', e);
+}
+}
+return result;
+}
+
+// Détecte les contradictions entre le texte soumis et l'extrait Wikipedia
+function checkContradictions(text, wikiExtract, baseScore) {
+const tl = text.toLowerCase();
+const wl = wikiExtract.toLowerCase();
+let score = baseScore;
+
+// Paires pays/ville souvent dans les fake news (ex: "Tour Eiffel à Berlin")
+const locations = [
+['paris','france'], ['berlin','allemagne'], ['madrid','espagne'],
+['rome','italie'], ['londres','royaume-uni'], ['washington','états-unis'],
+['moscou','russie'], ['pékin','chine'], ['tokyo','japon']
+];
+
+for (const [city, country] of locations) {
+// Si le texte mentionne la ville ET le wiki confirme le bon pays
+if (tl.includes(city) && wl.includes(city)) {
+// Check si le texte dit un mauvais pays
+for (const [, wrongCountry] of locations) {
+if (wrongCountry !== country && tl.includes(wrongCountry) && !wl.includes(wrongCountry)) {
+score = Math.min(score, 20); // Contradiction détectée → score très bas
+}
+}
+}
+}
+
+// Noms de personnes + rôles
+const roles = ['président','premier ministre','roi','reine','chancelier','directeur','fondateur'];
+for (const role of roles) {
+if (tl.includes(role) && wl.includes(role)) {
+score = Math.min(score + 5, 95); // Rôle confirmé
+}
+}
+
+return score;
+}
+
+// ════════════════════════════════════════════════════════
+// ÉTAPE 2 : GOOGLE FACT CHECK API
+// ════════════════════════════════════════════════════════
+async function checkFactCheck(query) {
+let claims = [];
+try {
+const r = await fetch(
+`https://factchecktools.googleapis.com/v1alpha1/claims:search?query=${encodeURIComponent(query)}&key=${GOOGLE_KEY}&languageCode=fr`
+);
+const d = await r.json();
+claims = d.claims || [];
+if (claims.length === 0) {
+const r2 = await fetch(
+`https://factchecktools.googleapis.com/v1alpha1/claims:search?query=${encodeURIComponent(query)}&key=${GOOGLE_KEY}`
+);
+const d2 = await r2.json();
+claims = d2.claims || [];
+}
+} catch (e) { console.warn('Fact Check error:', e); }
+
+// Calcule un score à partir des résultats
+let factScore = null;
+for (const claim of claims.slice(0, 3)) {
+const rating = (claim.claimReview?.[0]?.textualRating || '').toLowerCase();
+if (/faux|false|fake|incorrect|misleading|infondé|erroné/.test(rating)) {
+factScore = factScore === null ? 10 : Math.min(factScore, 10);
+} else if (/vrai|true|correct|accurate|confirmé|vérifié/.test(rating)) {
+factScore = factScore === null ? 90 : Math.max(factScore, 90);
+}
+}
+return { claims: claims.slice(0, 3), factScore };
+}
+
+// ════════════════════════════════════════════════════════
+// ÉTAPE 3 : ANALYSE SÉMANTIQUE LOCALE
+// ════════════════════════════════════════════════════════
+function analyseLocale(text) {
+const tl = text.toLowerCase();
+let score = 50;
+let indicators = [];
+let analyse = '';
+let theorieTrouvee = false;
+let searchQuery = text.substring(0, 80);
+
+// Théories connues
+for (const t of theoriesToConnues) {
+if (t.mots.filter(m => tl.includes(m)).length >= 2) {
+score = t.score;
+analyse = t.analyse;
+searchQuery = t.q;
+theorieTrouvee = true;
+indicators.push('⚠️ Théorie infirmée par la communauté scientifique');
+indicators.push('❌ Affirmation contredite par le consensus scientifique');
+break;
+}
+}
+
+if (!theorieTrouvee) {
+let cntD = 0, dList = [];
+for (const m of motsDouteux) {
+if (tl.includes(m)) { cntD++; dList.push(m); }
+}
+let cntS = 0;
+for (const m of motsScientifiques) {
+if (tl.includes(m)) cntS++;
+}
+
+score = 50 - (cntD * 12) + (cntS * 10);
+
+if (text.length < 20) { score -= 15; indicators.push('⚠️ Texte trop court pour une analyse complète'); }
+if ((text.match(/[A-ZÀÂÉÈÊËÏÎÔÙÛÜ]{3,}/g) || []).length > 2) {
+score -= 8; indicators.push('⚠️ Usage excessif de majuscules (style alarmiste)');
+}
+if ((text.match(/!/g) || []).length > 1) {
+score -= 5; indicators.push('⚠️ Langage émotionnel et alarmiste détecté');
+}
+if (dList.length > 0) {
+indicators.push(`⚠️ Langage sensationnaliste : "${dList.slice(0,2).join('", "')}"`);
+}
+if (cntS > 0) {
+indicators.push('✅ Référence à des sources ou institutions officielles');
+} else if (cntD === 0) {
+indicators.push('🔵 Langage neutre — pas de marqueur alarmiste');
+}
+
+if (cntD > 3) {
+analyse = 'Ce texte contient de nombreux marqueurs typiques de la désinformation : langage alarmiste, appel à l\'émotion et absence de sources vérifiables.';
+} else if (cntD > 1) {
+analyse = 'Ce texte présente des formulations sensationnalistes et n\'indique pas de sources officielles. Vérification recommandée.';
+} else if (cntS > 1) {
+analyse = 'Ce texte mentionne des institutions officielles, ce qui est un bon indicateur. Consultez directement ces sources pour confirmer.';
+} else {
+analyse = 'Aucun marqueur évident de désinformation détecté. Résultat basé sur la vérification Wikipedia et Google Fact Check.';
+}
+}
+
+return {
+localScore: Math.max(5, Math.min(95, score)),
+indicators,
+analyse,
+searchQuery
+};
+}
+
+// ════════════════════════════════════════════════════════
+// FUSION DES SCORES
+// ════════════════════════════════════════════════════════
+function fuseScores(localScore, wikiResult, factCheckScore) {
+let score = localScore;
+let sourceWeights = [];
+
+// Wikipedia a le plus grand poids si une page est trouvée
+if (wikiResult.found) {
+score = Math.round(wikiResult.score * 0.6 + localScore * 0.4);
+sourceWeights.push(`Wikipedia (60%)`);
+}
+
+// Google Fact Check écrase si une vérification formelle existe
+if (factCheckScore !== null) {
+if (wikiResult.found) {
+score = Math.round(factCheckScore * 0.5 + wikiResult.score * 0.35 + localScore * 0.15);
+} else {
+score = Math.round(factCheckScore * 0.6 + localScore * 0.4);
+}
+sourceWeights.push(`Fact Check (prioritaire)`);
+}
+
+return Math.max(3, Math.min(97, score));
+}
+
+// ════════════════════════════════════════════════════════
+// ANALYSE PRINCIPALE
+// ════════════════════════════════════════════════════════
+async function analyzeText() {
+const text = document.getElementById('inputText').value.trim();
+if (!text) { alert('Veuillez entrer un texte à analyser.'); return; }
+
+const btn = document.getElementById('btnAnalyze');
+btn.disabled = true;
+btn.textContent = 'Analyse en cours…';
+document.getElementById('loading').classList.add('show');
+document.getElementById('results').classList.remove('show');
+
+// Réinitialise les étapes
+['step1','step2','step3','step4'].forEach(id => {
+const el = document.getElementById(id);
+el.classList.remove('active','done');
+});
+
+function setStep(n) {
+if (n > 1) document.getElementById(`step${n-1}`).classList.replace('active','done');
+document.getElementById(`step${n}`).classList.add('active');
+}
+
+// Analyse locale (immédiate)
+const local = analyseLocale(text);
+
+// Étape 1 : Wikipedia
+setStep(1);
+const wikiResult = await checkWikipedia(text);
+
+// Étape 2 : Google Fact Check
+setStep(2);
+const { claims, factScore } = await checkFactCheck(local.searchQuery);
+
+// Étape 3 : Analyse sémantique
+setStep(3);
+await new Promise(r => setTimeout(r, 400));
+
+// Étape 4 : Score final
+setStep(4);
+await new Promise(r => setTimeout(r, 300));
+document.getElementById('step4').classList.replace('active','done');
+
+const finalScore = fuseScores(local.localScore, wikiResult, factScore);
+
+// Affichage
+displayResults({ finalScore, local, wikiResult, claims, factScore });
+
+document.getElementById('loading').classList.remove('show');
+btn.disabled = false;
+btn.textContent = 'Analyser';
+}
+
+// ════════════════════════════════════════════════════════
+// AFFICHAGE
+// ════════════════════════════════════════════════════════
+function displayResults({ finalScore, local, wikiResult, claims, factScore }) {
+const score = finalScore;
+let riskLevel, riskClass;
+if (score <= 30) { riskLevel = 'Risque Très Élevé'; riskClass = 'risk-high'; }
+else if (score <= 50) { riskLevel = 'Risque Élevé'; riskClass = 'risk-high'; }
+else if (score <= 70) { riskLevel = 'Risque Modéré'; riskClass = 'risk-medium'; }
+else { riskLevel = 'Fiable'; riskClass = 'risk-low'; }
+
+// Score card
+document.getElementById('scoreCard').className = `result-card score-card ${riskClass}`;
+document.getElementById('riskLabel').textContent = riskLevel;
+document.getElementById('riskScore').textContent = score + ' / 100';
+document.getElementById('iaText').textContent = local.analyse;
+
+// Sources utilisées
+const srcs = [];
+if (wikiResult.found) srcs.push('📖 Wikipedia');
+if (claims.length > 0) srcs.push('📋 Google Fact Check');
+srcs.push('🧠 Analyse sémantique');
+document.getElementById('sourcesUsed').textContent = '🔵 Sources croisées : ' + srcs.join(' · ');
+
+// Wikipedia card
+const wikiCard = document.getElementById('wikiCard');
+if (wikiResult.found) {
+wikiCard.style.display = '';
+let extract = wikiResult.extract;
+// Surligne les mots matchés
+wikiResult.matchedTerms.slice(0, 5).forEach(term => {
+const re = new RegExp(`(${term})`, 'gi');
+extract = extract.replace(re, '<mark>$1</mark>');
+});
+document.getElementById('wikiExtract').innerHTML =
+`<strong><a href="${wikiResult.url}" target="_blank" style="color:var(--green);text-decoration:none">📖 ${wikiResult.pageTitle}</a></strong><br><br>${extract}`;
+const bar = document.getElementById('wikiBar');
+const wikiColor = wikiResult.score >= 70 ? '#10b981' : wikiResult.score >= 50 ? '#f59e0b' : '#ef4444';
+bar.style.background = wikiColor;
+setTimeout(() => { bar.style.width = wikiResult.score + '%'; }, 100);
+} else {
+wikiCard.style.display = 'none';
+}
+
+// Fact check sources
+const srcList = document.getElementById('sourcesList');
+srcList.innerHTML = '';
+if (claims.length > 0) {
+claims.forEach(claim => {
+const review = claim.claimReview?.[0];
+if (!review) return;
+const rating = review.textualRating || '';
+const isFalse = /faux|false|fake|incorrect|misleading/i.test(rating);
+const isTrue = /vrai|true|correct|accurate/i.test(rating);
+const rBg = isFalse ? '#FEE2E2' : isTrue ? '#D1FAE5' : '#FEF9C3';
+const rColor = isFalse ? '#991B1B' : isTrue ? '#065F46' : '#92400E';
+const txt = (claim.text || review.title || 'Voir la vérification').substring(0, 75) + '…';
+const div = document.createElement('div');
+div.className = 'source-item';
+div.innerHTML = `
+<a href="${review.url || '#'}" target="_blank" rel="noopener">
+→ ${review.publisher?.name ? `<strong>${review.publisher.name}</strong> : ` : ''}${txt}
+${rating ? `<span class="source-rating" style="background:${rBg};color:${rColor}">${rating}</span>` : ''}
+</a>
+${claim.claimant ? `<div class="source-publisher">Affirmation par : ${claim.claimant}</div>` : ''}`;
+srcList.appendChild(div);
+});
+} else {
+srcList.innerHTML = `<div class="no-sources">Aucune vérification formelle trouvée dans les bases de données Fact Check. Consultez AFP Factuel, CheckNews ou Les Décodeurs.</div>`;
+}
+
+// Indicateurs
+const indList = document.getElementById('indicatorsList');
+indList.innerHTML = '';
+const allIndicators = [...local.indicators];
+if (wikiResult.found) {
+allIndicators.push(`✅ Page Wikipedia confirmée : "${wikiResult.pageTitle}" (${wikiResult.matchedTerms.length} terme(s) corroboré(s))`);
+} else {
+allIndicators.push('🔵 Aucune page Wikipedia directement correspondante');
+}
+if (factScore !== null) {
+if (factScore < 30) allIndicators.push('❌ Affirmation répertoriée comme fausse par des fact-checkers');
+else if (factScore > 70) allIndicators.push('✅ Affirmation confirmée par des fact-checkers reconnus');
+}
+allIndicators.slice(0, 5).forEach(ind => {
+indList.innerHTML += `<div class="indicator-item">${ind}</div>`;
+});
+
+animateRing(score);
+document.getElementById('results').classList.add('show');
+document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function animateRing(score) {
+const ring = document.getElementById('ringFill');
+setTimeout(() => {
+ring.style.strokeDashoffset = 232.5 - (score / 100) * 232.5;
+}, 100);
+let current = 0;
+const step = () => {
+current = Math.min(current + 2, score);
+document.getElementById('scoreNum').textContent = current;
+if (current < score) requestAnimationFrame(step);
+};
+requestAnimationFrame(step);
+}
+
+function fillExample(el) {
+document.getElementById('inputText').value = el.textContent.trim();
+document.getElementById('inputText').focus();
+}
+
+document.getElementById('inputText').addEventListener('keydown', e => {
+if (e.key === 'Enter' && e.ctrlKey) analyzeText();
+});
+</script>
+</body>
+</html>
